@@ -33,7 +33,7 @@ export const DUR = Object.freeze({
 const reducedQuery = typeof window !== 'undefined' ? window.matchMedia('(prefers-reduced-motion: reduce)') : null
 
 export function prefersReducedMotion() {
-  return Boolean(reducedQuery?.matches)
+  return Boolean(reducedQuery?.matches) || (typeof document !== 'undefined' && document.documentElement.dataset.reduceMotion === 'true')
 }
 
 /** 页面在后台时 rAF 被节流，补间会停在中途：此时直接给终态 */
@@ -166,8 +166,8 @@ export function playShellEntrance(frame: HTMLElement) {
   const tl = gsap.timeline({ paused: true })
   tl.set([...brand, ...groups, ...top], { opacity: 0, y: 8 })
   tl.add(() => frame.classList.add('is-entrance-ready'))
-  tl.to(brand, { opacity: 1, y: 0, duration: 0.6, ease: EASE.reveal }, 0)
-  tl.to(groups, { opacity: 1, y: 0, duration: 0.6, ease: EASE.reveal, stagger: { each: 0.06, from: 'start' } }, 0.08)
+  if (brand.length) tl.to(brand, { opacity: 1, y: 0, duration: 0.6, ease: EASE.reveal }, 0)
+  if (groups.length) tl.to(groups, { opacity: 1, y: 0, duration: 0.6, ease: EASE.reveal, stagger: { each: 0.06, from: 'start' } }, 0.08)
   tl.to(top, { opacity: 1, y: 0, duration: 0.5, ease: EASE.reveal, stagger: 0.04 }, 0.14)
   tl.add(() => gsap.set([...brand, ...groups, ...top], { clearProps: 'transform' }))
   afterTwoFrames(() => tl.play(0))

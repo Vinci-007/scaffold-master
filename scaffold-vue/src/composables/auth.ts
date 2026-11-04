@@ -14,6 +14,8 @@ import { clearDeptCache } from './dept'
 
 export const authed = ref<boolean>(authSession.isAuthenticated())
 export const currentUser = ref<CurrentUser | null>(authSession.user() as CurrentUser | null)
+export interface NavigationNode { key: string; label: string; icon: string; path?: string; children: NavigationNode[] }
+export const navigationTree = ref<NavigationNode[]>([])
 export const navGroups = ref<NavGroup[]>([])
 export const dynamicRoutes = ref<RouteRecordRaw[]>([])
 export const sessionVersion = ref(0)
@@ -65,19 +67,21 @@ function leafOf(item: RouteItem): NavLeaf | null {
   return { key: routeNameOf(path), label: item.name, icon: item.icon || 'file', path }
 }
 
-function buildNav(tree: RouteItem[]): NavGroup[] {
-  const groups: NavGroup[] = []
-  for (const node of tree) {
-    const children = node.children ?? []
-    if (!children.length) {
-      const leaf = leafOf(node)
-      if (leaf) groups.push({ key: leaf.key, label: leaf.label, icon: leaf.icon, single: true, items: [leaf] })
-      continue
-    }
-    const items = children.map(leafOf).filter((leaf): leaf is NavLeaf => Boolean(leaf))
-    if (items.length) groups.push({ key: `group-${node.id ?? node.name}`, label: node.name, icon: node.icon || 'file', items })
-  }
-  return groups
+function buildNavigationTree(nodes: RouteItem[]): NavigationNode[] {
+  return nodes.flatMap(node => {
+    const leaf = leafOf(node)
+    const children = buildNavigationTree(node.children ?? [])
+    if (!leaf && !children.length) return []
+    return [{ key: leaf?.key ?? `group-${node.id ?? node.name}`, label: node.name, icon: node.icon || 'file', path: leaf?.path, children }]
+  })
+}
+
+function buildNav(tree: NavigationNode[]): NavGroup[] {
+  const leaves = (node: NavigationNode): NavLeaf[] => [
+    ...(node.path ? [{ key: node.key, label: node.label, icon: node.icon, path: node.path }] : []),
+    ...node.children.flatMap(leaves),
+  ]
+  return tree.map(node => ({ key: node.key, label: node.label, icon: node.icon, single: !node.children.length, items: leaves(node) }))
 }
 
 function buildRoutes(groups: NavGroup[], tree: RouteItem[]): RouteRecordRaw[] {
@@ -99,7 +103,9 @@ export async function loadRoutes() {
   const version = sessionVersion.value
   const data = await authApi.routes()
   if (version !== sessionVersion.value) return
-  const groups = buildNav(data.routes)
+  const tree = buildNavigationTree(data.routes)
+  navigationTree.value = tree
+  const groups = buildNav(tree)
   navGroups.value = groups
   dynamicRoutes.value = buildRoutes(groups, data.routes)
   const visible = new Set(groups.flatMap(group => group.items.map(item => item.path)))
@@ -155,6 +161,7 @@ export function clearSession() {
   resetSessionRoutes?.()
   currentUser.value = null
   navGroups.value = []
+  navigationTree.value = []
   dynamicRoutes.value = []
   componentPaths.value = {}
   setPermissions([])

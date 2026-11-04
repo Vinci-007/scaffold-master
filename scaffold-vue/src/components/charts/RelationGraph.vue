@@ -394,8 +394,8 @@ onMounted(() => {
   loop.start(root.value)
   if (props.burstKey) burstAt = performance.now()
   // 主题切换后重新取发光色
-  themeObserver = new MutationObserver(() => { palette = null })
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
+  themeObserver = new MutationObserver(() => { palette = null; loop.flush() })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent', 'style'] })
 })
 let themeObserver: MutationObserver | null = null
 onBeforeUnmount(() => {

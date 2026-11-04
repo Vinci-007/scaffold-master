@@ -4,8 +4,11 @@ import { useRoute } from 'vue-router'
 import Icon from '@/components/Icon.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import Avatar from '@/components/ui/Avatar.vue'
+import { appearance } from '@/composables/appearance'
 import { currentUser } from '@/composables/auth'
 import { overlayEnter, overlayLeave } from '@/composables/motion'
+
+defineProps<{ showRailToggle?: boolean }>()
 
 const emit = defineEmits<{
   (e: 'toggle-rail'): void
@@ -72,8 +75,8 @@ onBeforeUnmount(() => closeMenu())
 
 <template>
   <header class="topbar">
-    <IconButton name="sidebar" label="切换导航" @click="emit('toggle-rail')" />
-    <div class="crumbs" aria-label="当前位置">
+    <IconButton v-if="showRailToggle !== false" name="sidebar" label="切换导航" @click="emit('toggle-rail')" />
+    <div v-if="appearance.showBreadcrumb" class="crumbs" aria-label="当前位置">
       <template v-if="group"><span>{{ group }}</span><Icon class="crumb-sep" name="chevronRight" :size="12" /></template>
       <span class="crumb-current">{{ title }}</span>
     </div>
@@ -83,7 +86,7 @@ onBeforeUnmount(() => closeMenu())
       <span class="cmd-text">搜索菜单</span>
       <span class="kbd">{{ isMac ? '⌘' : 'Ctrl' }} K</span>
     </button>
-    <IconButton name="contrast" label="外观设置" @click="emit('appearance')" />
+    <IconButton name="contrast" label="系统自定义配置" @click="emit('appearance')" />
     <button
       ref="chip"
       type="button"

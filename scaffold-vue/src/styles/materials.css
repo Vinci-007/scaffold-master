@@ -56,12 +56,12 @@
   border-radius: inherit;
   pointer-events: none;
   opacity: 0;
-  background: radial-gradient(circle 120px at var(--px) var(--py), rgba(255, 255, 255, .9), rgba(130, 221, 45, .08) 42%, transparent 72%);
+  background: radial-gradient(circle 120px at var(--px) var(--py), rgba(255, 255, 255, .9), rgba(var(--accent-rgb), .08) 42%, transparent 72%);
   mix-blend-mode: screen;
   transition: opacity .28s ease;
 }
 :root[data-theme="dark"] .m-glow > .glow-layer {
-  background: radial-gradient(circle 120px at var(--px) var(--py), rgba(255, 255, 255, .07), rgba(130, 221, 45, .05) 42%, transparent 72%);
+  background: radial-gradient(circle 120px at var(--px) var(--py), rgba(255, 255, 255, .07), rgba(var(--accent-rgb), .05) 42%, transparent 72%);
   mix-blend-mode: normal;
 }
 @media (hover: hover) {

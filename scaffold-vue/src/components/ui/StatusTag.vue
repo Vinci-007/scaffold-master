@@ -12,5 +12,5 @@ withDefaults(defineProps<{
 </script>
 
 <template>
-  <Tag :tone="status === 1 || status === true ? 'ok' : 'neutral'" dot>{{ status === 1 || status === true ? on : off }}</Tag>
+  <Tag class="status-tag" :tone="status === 1 || status === true ? 'info' : 'neutral'" dot>{{ status === 1 || status === true ? on : off }}</Tag>
 </template>

@@ -218,3 +218,10 @@
 
 /* 需要被连续补间的自定义属性必须注册，inherits: false 避免打脏后代 */
 @property --fill { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+
+/* 用户主色覆盖；状态色与图表分类语义保留。 */
+:root[data-surface-style="flat"] { --surface:var(--surface-solid); --e1:none; --e2:none; --e3:none; --edge:none; --edge-strong:none; }
+
+/* 固定语义色，与装饰主题色独立。 */
+:root { --success:#287a35; --success-soft:rgba(40,122,53,.10); --warning:#8a5700; --warning-soft:rgba(172,110,0,.12); }
+:root[data-theme="dark"] { --success:#91dc9d; --success-soft:rgba(100,200,120,.14); --warning:#efc16b; --warning-soft:rgba(239,193,107,.14); }

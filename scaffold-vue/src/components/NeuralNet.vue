@@ -68,7 +68,7 @@ function resolveColors() {
   const v = (name: string, fb: string) => cs.getPropertyValue(name).trim() || fb
   cStroke = v('--tick', cStroke)
   cAccent = v('--blue', cAccent)
-  cCheck = v('--lime', cCheck)
+  cCheck = v('--success', cCheck)
 }
 
 const loop = createFrameLoop((dt, t) => {
@@ -206,10 +206,13 @@ watch(() => props.burstKey, (key) => {
   loop.flush()
 })
 
+let themeObserver: MutationObserver | null = null
 let resizeObserver: ResizeObserver | null = null
 onMounted(() => {
   buildGraph()
   resolveColors()
+  themeObserver = new MutationObserver(() => { resolveColors(); loop.flush() })
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'style'] })
   resizeObserver = new ResizeObserver(() => loop.flush())
   if (wrap.value) resizeObserver.observe(wrap.value)
   loop.start(wrap.value)
@@ -217,6 +220,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   loop.stop()
   resizeObserver?.disconnect()
+  themeObserver?.disconnect()
 })
 </script>
 

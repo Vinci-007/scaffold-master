@@ -7,6 +7,9 @@ import { appearance } from '@/composables/appearance'
 import { slideThumb } from '@/composables/motion'
 import { APP } from '@/data'
 
+const props = defineProps<{ groupKey?: string }>()
+const visibleGroups = computed(() => props.groupKey ? navGroups.value.filter(g => g.key === props.groupKey) : navGroups.value)
+
 const emit = defineEmits<{ (e: 'navigate'): void }>()
 
 const route = useRoute()
@@ -15,7 +18,7 @@ const nav = ref<HTMLElement | null>(null)
 const thumb = ref<HTMLElement | null>(null)
 
 const activeKey = computed(() => String(route.name ?? ''))
-const hasActive = computed(() => navGroups.value.some(g => g.items.some(i => i.key === activeKey.value)))
+const hasActive = computed(() => visibleGroups.value.some(g => g.items.some(i => i.key === activeKey.value)))
 
 function go(path: string) {
   emit('navigate')
@@ -35,7 +38,7 @@ onMounted(() => {
 })
 onBeforeUnmount(() => observer?.disconnect())
 watch(activeKey, () => nextTick(() => sync()))
-watch(() => [navGroups.value, appearance.railCollapsed], () => nextTick(() => sync(true)), { deep: true })
+watch(() => [navGroups.value, appearance.railCollapsed, props.groupKey], () => nextTick(() => sync(true)), { deep: true })
 </script>
 
 <template>
@@ -50,7 +53,7 @@ watch(() => [navGroups.value, appearance.railCollapsed], () => nextTick(() => sy
 
     <nav ref="nav" class="rail-nav">
       <span v-show="hasActive" ref="thumb" class="nav-thumb m-pill" aria-hidden="true" />
-      <div v-for="group in navGroups" :key="group.key" class="nav-group">
+      <div v-for="group in visibleGroups" :key="group.key" class="nav-group">
         <div v-if="!group.single" class="nav-group-title">{{ group.label }}</div>
         <div class="nav-list">
           <button

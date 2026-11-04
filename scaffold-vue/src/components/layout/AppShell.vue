@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import AdaptiveNav from './AdaptiveNav.vue'
+import { navGroups } from '@/composables/auth'
 import Sidebar from './Sidebar.vue'
 import Topbar from './Topbar.vue'
 import CommandPalette from './CommandPalette.vue'
@@ -12,6 +14,11 @@ import { pageEnter, pageLeave, playShellEntrance } from '@/composables/motion'
 import { confirm } from '@/composables/confirm'
 
 const route = useRoute()
+const selectedGroup = ref('')
+const effectiveLayout = computed(() => mobile.value ? 'side' : appearance.layout)
+const activeGroup = computed(() => navGroups.value.find(g => g.items.some(i => i.key === String(route.name)))?.key ?? navGroups.value[0]?.key ?? '')
+const currentGroup = computed(() => navGroups.value.some(g => g.key === selectedGroup.value) ? selectedGroup.value : activeGroup.value)
+watch(() => route.path, () => { selectedGroup.value = activeGroup.value })
 const router = useRouter()
 const frame = ref<HTMLElement | null>(null)
 const content = ref<HTMLElement | null>(null)
@@ -32,7 +39,7 @@ const mq = window.matchMedia('(max-width: 820px)')
 const syncMobile = () => { mobile.value = mq.matches; if (!mq.matches) mobileOpen.value = false }
 
 const frameClass = computed(() => ({
-  'is-collapsed': appearance.railCollapsed && !mobile.value,
+  'is-collapsed': appearance.railCollapsed && !mobile.value && effectiveLayout.value !== 'top',
   'is-mobile-open': mobile.value && mobileOpen.value,
 }))
 
@@ -78,11 +85,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="stage">
-    <div ref="frame" :class="['app-frame', frameClass]">
-      <Sidebar @navigate="mobileOpen = false" />
+    <div ref="frame" :class="['app-frame', frameClass]" :data-layout="effectiveLayout">
+      <AdaptiveNav v-if="effectiveLayout !== 'side'" :layout="effectiveLayout" :selected="currentGroup" @select="selectedGroup = $event" />
+      <Sidebar v-if="effectiveLayout !== 'top'" :group-key="effectiveLayout === 'side' ? undefined : currentGroup" @navigate="mobileOpen = false" />
       <div v-if="mobile && mobileOpen" class="rail-scrim" aria-hidden="true" @click="mobileOpen = false" />
       <div :class="['workspace', { 'is-scrolled': scrolled }]">
         <Topbar
+          :show-rail-toggle="effectiveLayout !== 'top'"
           @toggle-rail="toggleRail"
           @command="commandOpen = true"
           @appearance="appearanceOpen = true"
